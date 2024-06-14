@@ -2,7 +2,7 @@ const express=require("express")
 const mongoose=require("mongoose")
 const cors=require("cors")
 const bcryptjs=require("bcryptjs")
-const jsonwebtoken=require("jsonwebtoken")
+const jwt=require("jsonwebtoken")
 
 
 const {ksrtcmodel} = require("./models/ksrtc")
@@ -32,6 +32,8 @@ app.post("/signup",async(req,res)=>{
 })
 
 
+
+
 app.post("/signIn",(req,res)=>{
     // res.json({"status":"success"}) 2 res couse error
 
@@ -45,7 +47,7 @@ app.post("/signIn",(req,res)=>{
              bcryptjs.compare(input.password,dbpassword,(error,ismatch)=>{
                if(ismatch){
 
-                jsonwebtoken.sign({"email":input.email},"blog-app",{expiresIn:"1d" },
+                jwt.sign({"email":input.emailid},"ksrtc-app",{expiresIn:"1d" },
                     (error,token)=>{
                         if(error){
                             res.json({"status":"unable to create token"})
@@ -68,6 +70,23 @@ app.post("/signIn",(req,res)=>{
 })
 
 
+app.post("/view",(req,res)=>{
+    let token=req.headers["token"]
+    jwt.verify(token,"ksrtc-app",(error,decoded)=>{
+        if(error){
+            res.json({"status":"unauthorised access"})
+        }else{
+            if(decoded)
+                {
+                    ksrtcmodel.find().then(
+                        (response)=>{
+                            res.json(response)
+                        }
+                    ).catch()
+                }
+        }
+    })
+})
 app.listen(8080,()=>{
     console.log("server start")
 })
